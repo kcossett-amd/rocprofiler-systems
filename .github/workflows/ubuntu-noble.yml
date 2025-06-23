@@ -48,7 +48,7 @@ jobs:
         compiler: ['g++']
         build-type: ['Release'] # build-type: ['Release', 'Debug']
         strip: ['OFF']
-        build-dyninst: ['OFF']
+        build-dyninst: ['ON'] # Default OFF
         rocm-version: ['6.4'] # rocm-version: ['0.0','6.3','6.4']
         mpi: ['OFF']
         ompt: ['OFF']
