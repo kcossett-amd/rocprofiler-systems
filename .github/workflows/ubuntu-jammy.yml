@@ -3,7 +3,6 @@ run-name: ubuntu-jammy
 
 on:
   push:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -17,7 +16,6 @@ on:
       - 'docker/**'
       - .wordlist.txt
   pull_request:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
