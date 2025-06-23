@@ -2,6 +2,7 @@ name: Ubuntu 24.04 (GCC, Python, ROCm)
 run-name: ubuntu-noble
 
 on:
+  workflow_dispatch:
   push:
     branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
@@ -30,7 +31,6 @@ on:
       - '.github/workflows/weekly-mainline-sync.yml'
       - 'docker/**'
       - .wordlist.txt
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
