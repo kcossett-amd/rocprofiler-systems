@@ -71,7 +71,7 @@ The documentation source files reside in the [`/docs`](/docs) folder of this rep
   - Utilization
   - VCN Utilization
   - JPEG Utilization
-  
+
   Note: The availability of VCN and JPEG engine utilization depends on device support for different ASICs. If unsupported, all values for VCN_ACTIVITY and JPEG_ACTIVITY will be reported as N/A in the output of `amd-smi metric --usage`.
 
 ### CPU Metrics
@@ -136,6 +136,61 @@ module load rocprofiler-systems
 export PATH=/opt/rocprofiler-systems/bin:${PATH}
 export LD_LIBRARY_PATH=/opt/rocprofiler-systems/lib:${LD_LIBRARY_PATH}
 ```
+
+### Testing Environment
+
+The `build-docker` script can be used to create a testing environment. To see available options, use the commands below:
+
+```shell
+cd docker
+./build-docker.sh --help
+```
+
+**Example:** To set up an Ubuntu 24.04 + ROCm 6.4 + Python 3.12 environment for building and testing, run the following commands:
+
+```shell
+cd docker
+./build-docker.sh --distro ubuntu --versions 24.04                               \
+        --rocm-versions 6.4 --python-versions 12 --retry 1
+docker run -v "$(cd .. && pwd)":/home/development                                \
+        -it -w /home/development                                                 \
+        --device /dev/kfd --device /dev/dri                                      \
+        rocm/rocprofiler-systems:release-base-ubuntu-24.04-rocm-6.4
+```
+
+Inside the container, clean, build, and install the project with tests enabled using the following commands:
+
+```shell
+rm -rf rocprof-sys-build
+cmake -B rocprof-sys-build -S .                                                  \
+       -D CMAKE_INSTALL_PREFIX=/opt/rocprofiler-systems                          \
+       -D ROCPROFSYS_USE_PYTHON=ON      -D ROCPROFSYS_BUILD_DYNINST=ON           \
+       -D ROCPROFSYS_BUILD_TBB=ON       -D ROCPROFSYS_BUILD_BOOST=ON             \
+       -D ROCPROFSYS_BUILD_ELFUTILS=ON  -D ROCPROFSYS_BUILD_LIBIBERTY=ON         \
+       -D ROCPROFSYS_BUILD_TESTING=ON
+cmake --build rocprof-sys-build --target all --parallel 8
+cmake --build rocprof-sys-build --target install
+source /opt/rocprofiler-systems/share/rocprofiler-systems/setup-env.sh
+```
+
+> ***If you see Git errors about "dubious ownership" when working in the container, run***
+> ***`git config --global --add safe.directory /home/development` and***
+> ***`git config --global --add safe.directory /home/development/external/timemory`***
+
+Then, use the following command to start automated testing:
+
+```shell
+ctest --test-dir rocprof-sys-build --output-on-failure
+```
+
+To enable MPI testing inside the container, set the following environment variables:
+
+```shell
+export OMPI_ALLOW_RUN_AS_ROOT=1
+export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+```
+
+For manual testing, you can find the executables in `rocprof-sys-build/bin`.
 
 ### ROCm Systems Profiler Settings
 

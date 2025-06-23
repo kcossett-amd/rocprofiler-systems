@@ -15,11 +15,16 @@ rocprofiler_systems_add_interface_library(rocprofiler-systems-threading
 rocprofiler_systems_add_interface_library(
     rocprofiler-systems-dyninst
     "Provides flags and libraries for Dyninst (dynamic instrumentation)")
+rocprofiler_systems_add_interface_library(rocprofiler-systems-boost
+                                          "Boost interface library (for Dyninst)")
+rocprofiler_systems_add_interface_library(rocprofiler-systems-elfutils
+                                          "ElfUtils interface library (for Dyninst)")
+rocprofiler_systems_add_interface_library(rocprofiler-systems-libiberty
+                                          "LibIberty interface library (for Dyninst)")
+rocprofiler_systems_add_interface_library(
+    rocprofiler-systems-tbb "Threading Building Blocks interface library (for Dyninst)")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-rocm
                                           "Provides flags and libraries for ROCm")
-rocprofiler_systems_add_interface_library(
-    rocprofiler-systems-rccl
-    "Provides flags for ROCm Communication Collectives Library (RCCL)")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-mpi
                                           "Provides MPI or MPI headers")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-libva
@@ -32,8 +37,6 @@ rocprofiler_systems_add_interface_library(rocprofiler-systems-papi "Enable PAPI 
 rocprofiler_systems_add_interface_library(rocprofiler-systems-ompt "Enable OMPT support")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-python
                                           "Enables Python support")
-rocprofiler_systems_add_interface_library(rocprofiler-systems-elfutils
-                                          "Provides ElfUtils")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-perfetto
                                           "Enables Perfetto support")
 rocprofiler_systems_add_interface_library(rocprofiler-systems-timemory
@@ -47,7 +50,6 @@ rocprofiler_systems_add_interface_library(rocprofiler-systems-compile-definition
 # libraries with relevant compile definitions
 set(ROCPROFSYS_EXTENSION_LIBRARIES
     rocprofiler-systems::rocprofiler-systems-rocm
-    rocprofiler-systems::rocprofiler-systems-rccl
     rocprofiler-systems::rocprofiler-systems-bfd
     rocprofiler-systems::rocprofiler-systems-mpi
     rocprofiler-systems::rocprofiler-systems-ptl
@@ -187,19 +189,6 @@ endif()
 
 # ----------------------------------------------------------------------------------------#
 #
-# RCCL
-#
-# ----------------------------------------------------------------------------------------#
-
-if(ROCPROFSYS_USE_RCCL)
-    find_package(RCCL-Headers ${rocprofiler_systems_FIND_QUIETLY} REQUIRED)
-    target_link_libraries(rocprofiler-systems-rccl INTERFACE roc::rccl-headers)
-    rocprofiler_systems_target_compile_definitions(rocprofiler-systems-rccl
-                                                   INTERFACE ROCPROFSYS_USE_RCCL)
-endif()
-
-# ----------------------------------------------------------------------------------------#
-#
 # MPI
 #
 # ----------------------------------------------------------------------------------------#
@@ -210,13 +199,12 @@ set(_ROCPROFSYS_MPI_HEADERS_ALLOW_MPICH ${MPI_HEADERS_ALLOW_MPICH})
 if(ROCPROFSYS_USE_MPI)
     find_package(MPI ${rocprofiler_systems_FIND_QUIETLY} REQUIRED)
     target_link_libraries(rocprofiler-systems-mpi INTERFACE MPI::MPI_C MPI::MPI_CXX)
-    rocprofiler_systems_target_compile_definitions(
-        rocprofiler-systems-mpi INTERFACE TIMEMORY_USE_MPI=1 ROCPROFSYS_USE_MPI)
+    rocprofiler_systems_target_compile_definitions(rocprofiler-systems-mpi
+                                                   INTERFACE ROCPROFSYS_USE_MPI)
 elseif(ROCPROFSYS_USE_MPI_HEADERS)
     find_package(MPI-Headers ${rocprofiler_systems_FIND_QUIETLY} REQUIRED)
-    rocprofiler_systems_target_compile_definitions(
-        rocprofiler-systems-mpi INTERFACE TIMEMORY_USE_MPI_HEADERS=1
-                                          ROCPROFSYS_USE_MPI_HEADERS)
+    rocprofiler_systems_target_compile_definitions(rocprofiler-systems-mpi
+                                                   INTERFACE ROCPROFSYS_USE_MPI_HEADERS)
     target_link_libraries(rocprofiler-systems-mpi INTERFACE MPI::MPI_HEADERS)
 endif()
 
@@ -231,30 +219,16 @@ rocprofiler_systems_target_compile_definitions(
 
 # ----------------------------------------------------------------------------------------#
 #
-# ElfUtils
-#
-# ----------------------------------------------------------------------------------------#
-
-include(ElfUtils)
-
-target_include_directories(rocprofiler-systems-elfutils SYSTEM
-                           INTERFACE ${ElfUtils_INCLUDE_DIRS})
-target_compile_definitions(rocprofiler-systems-elfutils INTERFACE ${ElfUtils_DEFINITIONS})
-target_link_directories(rocprofiler-systems-elfutils INTERFACE ${ElfUtils_LIBRARY_DIRS})
-target_link_libraries(rocprofiler-systems-elfutils INTERFACE ${ElfUtils_LIBRARIES})
-
-# ----------------------------------------------------------------------------------------#
-#
 # Dyninst
 #
 # ----------------------------------------------------------------------------------------#
-
+include(DyninstExternals)
 if(ROCPROFSYS_BUILD_DYNINST)
     rocprofiler_systems_checkout_git_submodule(
         RELATIVE_PATH external/dyninst
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        REPO_URL https://github.com/jrmadsen/dyninst.git
-        REPO_BRANCH omnitrace)
+        REPO_URL https://github.com/ROCm/dyninst.git
+        REPO_BRANCH dyninst_13)
 
     set(DYNINST_OPTION_PREFIX ON)
     set(DYNINST_BUILD_DOCS OFF)
@@ -297,6 +271,7 @@ if(ROCPROFSYS_BUILD_DYNINST)
     set(DYNINST_TPL_INSTALL_LIB_DIR
         "${PROJECT_NAME}"
         CACHE PATH "Third-party library install-tree install library prefix" FORCE)
+
     add_subdirectory(external/dyninst EXCLUDE_FROM_ALL)
     rocprofiler_systems_restore_variables(
         PIC VARIABLES CMAKE_POSITION_INDEPENDENT_CODE CMAKE_INSTALL_RPATH
@@ -329,17 +304,37 @@ if(ROCPROFSYS_BUILD_DYNINST)
         endif()
     endforeach()
 
-    # for packaging
-    install(
-        DIRECTORY ${DYNINST_TPL_STAGING_PREFIX}/lib/
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
-        COMPONENT dyninst
-        FILES_MATCHING
-        PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+    foreach(
+        _LIB
+        common
+        dynDwarf
+        dynElf
+        dyninstAPI
+        instructionAPI
+        parseAPI
+        patchAPI
+        pcontrol
+        stackwalk
+        symtabAPI)
+        if(TARGET ${_LIB})
+            add_dependencies(${_LIB} external-prebuild)
+            if(NOT TARGET Dyninst::${_LIB})
+                add_library(Dyninst::${_LIB} ALIAS ${_LIB})
+            endif()
+        endif()
+    endforeach()
 
     target_link_libraries(rocprofiler-systems-dyninst INTERFACE Dyninst::Dyninst)
 
 else()
+    # Find Boost before finding Dyninst
+    find_package(Boost)
+    if(NOT TARGET Dyninst::Boost_headers)
+        add_library(Dyninst::Boost_headers INTERFACE IMPORTED)
+        target_include_directories(Dyninst::Boost_headers SYSTEM
+                                   INTERFACE ${Boost_INCLUDE_DIRS})
+    endif()
+
     find_package(Dyninst ${rocprofiler_systems_FIND_QUIETLY} REQUIRED
                  COMPONENTS dyninstAPI parseAPI instructionAPI symtabAPI)
 
@@ -543,9 +538,6 @@ set(TIMEMORY_QUIET_CONFIG
     CACHE BOOL "Make timemory configuration quieter")
 
 # timemory feature settings
-set(TIMEMORY_USE_MPI
-    ${ROCPROFSYS_USE_MPI}
-    CACHE BOOL "Enable MPI support in timemory" FORCE)
 set(TIMEMORY_USE_GOTCHA
     ON
     CACHE BOOL "Enable GOTCHA support in timemory")
