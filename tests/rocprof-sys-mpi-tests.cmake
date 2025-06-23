@@ -52,7 +52,7 @@ rocprofiler_systems_add_test(
         "(/[A-Za-z-]+/perfetto-trace-0.proto).*(/[A-Za-z-]+/wall_clock-0.txt')"
     REWRITE_RUN_FAIL_REGEX
         "(perfetto-trace|trip_count|sampling_percent|sampling_cpu_clock|sampling_wall_clock|wall_clock)-[0-9][0-9]+.(json|txt|proto)|ROCPROFSYS_ABORT_FAIL_REGEX"
-    )
+)
 
 rocprofiler_systems_add_test(
     SKIP_RUNTIME
@@ -75,7 +75,7 @@ rocprofiler_systems_add_test(
         "${_flat_environment};ROCPROFSYS_USE_SAMPLING=OFF;ROCPROFSYS_STRICT_CONFIG=OFF;ROCPROFSYS_USE_MPIP=ON"
     REWRITE_RUN_PASS_REGEX
         ">>> mpi-flat-mpip.inst(.*\n.*)>>> MPI_Init_thread(.*\n.*)>>> pthread_create(.*\n.*)>>> MPI_Comm_size(.*\n.*)>>> MPI_Comm_rank(.*\n.*)>>> MPI_Barrier(.*\n.*)>>> MPI_Alltoall"
-    )
+)
 
 rocprofiler_systems_add_test(
     SKIP_RUNTIME
@@ -97,7 +97,50 @@ rocprofiler_systems_add_test(
     ENVIRONMENT "${_flat_environment};ROCPROFSYS_USE_SAMPLING=OFF"
     REWRITE_RUN_PASS_REGEX
         ">>> mpi-flat.inst(.*\n.*)>>> MPI_Init_thread(.*\n.*)>>> pthread_create(.*\n.*)>>> MPI_Comm_size(.*\n.*)>>> MPI_Comm_rank(.*\n.*)>>> MPI_Barrier(.*\n.*)>>> MPI_Alltoall"
+)
+
+if(ENABLE_FORTRAN)
+    rocprofiler_systems_add_test(
+        NAME "mpi-fortran-array"
+        TARGET mpi-fortran-array
+        MPI ON
+        NUM_PROCS 2
+        LABELS "fortran"
+        REWRITE_ARGS
+            -e
+            -v
+            2
+            --label
+            file
+            line
+            args
+            --min-instructions
+            0
+        ENVIRONMENT "${_mpip_environment};"
+        BASELINE_PASS_REGEX "Final sum= *0\\.400000E\\+15"
     )
+
+    rocprofiler_systems_add_test(
+        SKIP_RUNTIME # Runtime needs to be skipped
+        NAME "mpi-fortran-mm"
+        TARGET mpi-fortran-mm
+        MPI ON
+        NUM_PROCS 2
+        LABELS "fortran"
+        REWRITE_ARGS
+            -e
+            -v
+            2
+            --label
+            file
+            line
+            args
+            --min-instructions
+            0
+        ENVIRONMENT "${_mpip_environment};"
+        BASELINE_PASS_REGEX "1015\\.00.*44520\\.00"
+    )
+endif()
 
 set(_mpip_environment
     "ROCPROFSYS_TRACE=ON"
@@ -111,7 +154,8 @@ set(_mpip_environment
     "ROCPROFSYS_VERBOSE=2"
     "ROCPROFSYS_DL_VERBOSE=2"
     "${_test_openmp_env}"
-    "${_test_library_path}")
+    "${_test_library_path}"
+)
 
 set(_mpip_all2all_environment
     "ROCPROFSYS_TRACE=ON"
@@ -125,9 +169,19 @@ set(_mpip_all2all_environment
     "ROCPROFSYS_VERBOSE=3"
     "ROCPROFSYS_DL_VERBOSE=3"
     "${_test_openmp_env}"
-    "${_test_library_path}")
+    "${_test_library_path}"
+)
 
-foreach(_EXAMPLE all2all allgather allreduce bcast reduce scatter-gather send-recv)
+foreach(
+    _EXAMPLE
+    all2all
+    allgather
+    allreduce
+    bcast
+    reduce
+    scatter-gather
+    send-recv
+)
     if("${_mpip_${_EXAMPLE}_environment}" STREQUAL "")
         set(_mpip_${_EXAMPLE}_environment "${_mpip_environment}")
     endif()
@@ -140,5 +194,6 @@ foreach(_EXAMPLE all2all allgather allreduce bcast reduce scatter-gather send-re
         LABELS "mpip"
         REWRITE_ARGS -e -v 2 --label file line --min-instructions 0
         RUN_ARGS 30
-        ENVIRONMENT "${_mpip_${_EXAMPLE}_environment}")
+        ENVIRONMENT "${_mpip_${_EXAMPLE}_environment}"
+    )
 endforeach()
