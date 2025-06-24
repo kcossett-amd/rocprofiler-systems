@@ -50,9 +50,9 @@ jobs:
         strip: ['OFF']
         build-dyninst: ['ON'] # Default OFF
         rocm-version: ['6.4'] # rocm-version: ['0.0','6.3','6.4']
-        mpi: ['OFF']
-        ompt: ['OFF']
-        papi: ['OFF']
+        mpi: ['OFF'] # Default OFF
+        ompt: ['ON'] # Default OFF
+        papi: ['ON'] # Default OFF
         python: ['ON']
         mpi-headers: ['ON']
         hidden: ['ON']
@@ -104,7 +104,7 @@ jobs:
         if [ ${{ matrix.rocm-version }} != "0.0" ]; then USE_ROCM=ON; fi
         TAG=""
         python3 ./scripts/run-ci.py -B build \
-          --name ${{ github.repository_owner }}-${{ github.ref_name }}-ubuntu-jammy-${{ matrix.compiler }}${TAG} \
+          --name ${{ github.repository_owner }}-${{ github.ref_name }}-ubuntu-noble-${{ matrix.compiler }}${TAG} \
           --build-jobs 2 \
           --site GitHub \
           -- \
