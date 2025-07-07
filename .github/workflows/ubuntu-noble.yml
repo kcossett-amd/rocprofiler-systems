@@ -148,3 +148,4 @@ jobs:
         cmake --build build --target install --parallel 2
 
         #Test until Install for now
+        #Test
