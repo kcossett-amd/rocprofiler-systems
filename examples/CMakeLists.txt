@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 3.18.4 FATAL_ERROR)
 
 find_program(GFORTRAN_EXECUTABLE NAMES gfortran)
-find_program(FORTRAN_WRAPPER_COMPILER NAMES mpifort mpif90 mpif77)
 
-if(GFORTRAN_EXECUTABLE AND FORTRAN_WRAPPER_COMPILER)
-    set(ENABLE_FORTRAN TRUE CACHE BOOL "Enable Fortran support")
+if(GFORTRAN_EXECUTABLE)
+    set(ENABLE_FORTRAN_TESTS TRUE CACHE BOOL "Enable Fortran CTest support")
 else()
-    set(ENABLE_FORTRAN FALSE CACHE BOOL "Enable Fortran support")
+    set(ENABLE_FORTRAN_TESTS FALSE CACHE BOOL "Enable Fortran CTest support")
 endif()
 
-if(ENABLE_FORTRAN)
+if(ENABLE_FORTRAN_TESTS)
     project(rocprofiler-systems-mpi-examples LANGUAGES C CXX Fortran)
 else()
     project(rocprofiler-systems-mpi-examples LANGUAGES C CXX)
