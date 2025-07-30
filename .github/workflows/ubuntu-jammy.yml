@@ -15,6 +15,7 @@ on:
       - '.github/workflows/weekly-mainline-sync.yml'
       - 'docker/**'
       - .wordlist.txt
+      - CMakePresets.json
   pull_request:
     paths-ignore:
       - '*.md'
@@ -28,6 +29,7 @@ on:
       - '.github/workflows/weekly-mainline-sync.yml'
       - 'docker/**'
       - .wordlist.txt
+      - CMakePresets.json
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
