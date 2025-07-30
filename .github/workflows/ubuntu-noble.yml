@@ -56,9 +56,9 @@ jobs:
         strip: ['OFF']
         hidden: ['ON'] # Default ON and OFF
         build-type: ['Release']
-        mpi-headers: ['ON'] # Default ON and OFF
+        mpi-headers: ['ON', 'OFF'] # Default ON and OFF
         build-dyninst: ['ON']
-        rocm-version: ['0.0'] # rocm-version: ['0.0','6.3','6.4']
+        rocm-version: ['0.0', '6.3', '6.4'] # rocm-version: ['0.0','6.3','6.4']
 
     env:
       OMPI_ALLOW_RUN_AS_ROOT: 1
@@ -86,20 +86,20 @@ jobs:
           python3 -m pip install 'cmake==3.21' --break-system-packages &&
           for i in 6 7 8 9 10 11; do /opt/conda/envs/py3.${i}/bin/python -m pip install --upgrade numpy perfetto dataclasses; done
 
-    # - name: Install ROCm Packages
-    #   if: ${{ matrix.rocm-version > 0 }}
-    #   timeout-minutes: 115
-    #   shell: bash
-    #   run: |
-    #     ROCM_VERSION=${{ matrix.rocm-version }}
-    #     ROCM_MAJOR=$(echo ${ROCM_VERSION} | sed 's/\./ /g' | awk '{print $1}')
-    #     ROCM_MINOR=$(echo ${ROCM_VERSION} | sed 's/\./ /g' | awk '{print $2}')
-    #     ROCM_VERSN=$(( (${ROCM_MAJOR}*10000)+(${ROCM_MINOR}*100) ))
-    #     echo "ROCM_MAJOR=${ROCM_MAJOR} ROCM_MINOR=${ROCM_MINOR} ROCM_VERSN=${ROCM_VERSN}"
-    #     wget -q https://repo.radeon.com/amdgpu-install/${{ matrix.rocm-version }}/ubuntu/noble/amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
-    #     apt-get install -y ./amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
-    #     apt-get update
-    #     apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev
+    - name: Install ROCm Packages
+      if: ${{ matrix.rocm-version > 0 }}
+      timeout-minutes: 115
+      shell: bash
+      run: |
+        ROCM_VERSION=${{ matrix.rocm-version }}
+        ROCM_MAJOR=$(echo ${ROCM_VERSION} | sed 's/\./ /g' | awk '{print $1}')
+        ROCM_MINOR=$(echo ${ROCM_VERSION} | sed 's/\./ /g' | awk '{print $2}')
+        ROCM_VERSN=$(( (${ROCM_MAJOR}*10000)+(${ROCM_MINOR}*100) ))
+        echo "ROCM_MAJOR=${ROCM_MAJOR} ROCM_MINOR=${ROCM_MINOR} ROCM_VERSN=${ROCM_VERSN}"
+        wget -q https://repo.radeon.com/amdgpu-install/${{ matrix.rocm-version }}/ubuntu/noble/amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
+        apt-get install -y ./amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
+        apt-get update
+        apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev
 
     - name: Configure and Build
       timeout-minutes: 115
@@ -133,21 +133,20 @@ jobs:
           -DROCPROFSYS_BUILD_LIBIBERTY=${{ matrix.build-dyninst }} \
           -DROCPROFSYS_BUILD_HIDDEN_VISIBILITY=${{ matrix.hidden }} \
           -DROCPROFSYS_PYTHON_PREFIX=/opt/conda/envs \
-          -DROCPROFSYS_PYTHON_ENVS="py3.11" \
+          -DROCPROFSYS_PYTHON_ENVS="py3.8;py3.9;py3.10;py3.11;py3.12" \
           -DROCPROFSYS_STRIP_LIBRARIES=${{ matrix.strip }} \
           -DROCPROFSYS_MAX_THREADS=64 \
-          -DROCPROFSYS_DISABLE_EXAMPLES="transpose;rccl;openmp-target" \
+          -DROCPROFSYS_DISABLE_EXAMPLES="transpose;rccl;openmp-target;lulesh" \
           -DROCPROFSYS_BUILD_NUMBER=1 \
           -DUSE_CLANG_OMP=OFF \
           -- \
-          -LE "transpose|rccl|videodecode|jpegdecode|network" 
+          -LE "transpose|rccl|videodecode|jpegdecode|network"
 # In above command, for PYTHON_ENVS, put back from 8 to 12
 #           -DROCPROFSYS_BUILD_NUMBER=${{ github.run_attempt }} \
-    
+
     - name: Install
       timeout-minutes: 10
       run:
         cmake --build build --target install --parallel 2
 
         #Test until Install for now
-        #Tes
