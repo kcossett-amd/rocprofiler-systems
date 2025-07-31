@@ -54,7 +54,7 @@ jobs:
         papi: ['OFF']
         python: ['ON']
         strip: ['OFF']
-        hidden: ['ON'] # Default ON and OFF
+        hidden: ['ON', 'OFF'] # Default ON and OFF
         build-type: ['Release']
         mpi-headers: ['ON', 'OFF'] # Default ON and OFF
         build-dyninst: ['ON']
@@ -127,7 +127,7 @@ jobs:
     #     export LD_LIBRARY_PATH=/opt/rocm-${{ matrix.rocm-version }}/lib:$LD_LIBRARY_PATH
     #     export CMAKE_PREFIX_PATH=/opt/rocm-${{ matrix.rocm-version }}:$CMAKE_PREFIX_PATH
 
-    - name: Configure and Build
+    - name: Configure, Build and Test
       timeout-minutes: 115
       shell: bash
       run: |
@@ -181,3 +181,47 @@ jobs:
         cmake --build build --target install --parallel 2
 
         #Test until Install for now
+
+    - name: CPack and Install
+      run: |
+        cd build
+        cpack -G STGZ
+        mkdir -p /opt/rocprofiler-systems
+        ./rocprofiler-systems-*.sh --prefix=/opt/rocprofiler-systems --exclude-subdir --skip-license
+
+    - name: Test Install with Modulefile
+      timeout-minutes: 15
+      shell: bash
+      run: |
+        set -v
+        source /usr/share/modules/init/$(basename ${SHELL})
+        module use /opt/rocprofiler-systems/share/modulefiles
+        module avail
+        module load rocprofiler-systems
+        ./scripts/test-install.sh --test-rocprof-sys-{instrument,avail,sample,python,rewrite,runtime}=1
+
+    - name: Test User API
+      timeout-minutes: 10
+      run: |
+        set -v
+        ./scripts/test-find-package.sh --install-dir /opt/rocprofiler-systems
+
+    - name: CTest Artifacts
+      if: failure()
+      continue-on-error: True
+      uses: actions/upload-artifact@v4
+      with:
+        name: ctest-${{ github.job }}-${{ strategy.job-index }}-log
+        path: |
+          build/*.log
+
+    - name: Data Artifacts
+      if: failure()
+      continue-on-error: True
+      uses: actions/upload-artifact@v4
+      with:
+        name: data-${{ github.job }}-${{ strategy.job-index }}-files
+        path: |
+          build/rocprofsys-tests-config/*.cfg
+          build/rocprofsys-tests-output/**/*.txt
+          build/rocprofsys-tests-output/**/*-instr*.json
