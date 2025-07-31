@@ -106,6 +106,16 @@ jobs:
       shell: bash
       run: |
         dpkg -L rocprofiler-sdk-roctx || echo "rocprofiler-sdk-roctx not installed"
+        ls /opt
+    
+    # - name: Set up ROCm paths
+    #   if: ${{ matrix.rocm-version != '0.0' }}
+    #   shell: bash
+    #   run: |
+    #     echo "/opt/rocm-${{ matrix.rocm-version }}/lib" >> /etc/ld.so.conf.d/rocm.conf
+    #     ldconfig
+    #     export LD_LIBRARY_PATH=/opt/rocm-${{ matrix.rocm-version }}/lib:$LD_LIBRARY_PATH
+    #     export CMAKE_PREFIX_PATH=/opt/rocm-${{ matrix.rocm-version }}:$CMAKE_PREFIX_PATH
 
     - name: Configure and Build
       timeout-minutes: 115
