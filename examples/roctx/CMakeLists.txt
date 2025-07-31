@@ -102,10 +102,6 @@ find_library(
     REQUIRED
 )
 
-message(STATUS "ROCTX_LIBRARY search result: ${ROCTX_LIBRARY}")
-message(STATUS "CMAKE_LIBRARY_PATH: ${CMAKE_LIBRARY_PATH}")
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "CMAKE_SYSTEM_LIBRARY_PATH: ${CMAKE_SYSTEM_LIBRARY_PATH}")
 # Link it to target
 target_link_libraries(roctx PRIVATE ${ROCTX_LIBRARY})
 

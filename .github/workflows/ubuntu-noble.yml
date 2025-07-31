@@ -101,22 +101,22 @@ jobs:
         apt-get update
         apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev
 
-    - name: Set up ROCm paths
-      if: ${{ matrix.rocm-version != '0.0' }}
-      shell: bash
-      run: |
-        ROCM_PATH="/opt/rocm-${{ matrix.rocm-version }}.0"
-        if [ -d "$ROCM_PATH" ]; then
-          echo "$ROCM_PATH/lib" >> /etc/ld.so.conf.d/rocm.conf
-          ldconfig
-          export LD_LIBRARY_PATH=$ROCM_PATH/lib:$LD_LIBRARY_PATH
-          export CMAKE_PREFIX_PATH=$ROCM_PATH:$CMAKE_PREFIX_PATH
-        else
-          echo "/opt/rocm/lib" >> /etc/ld.so.conf.d/rocm.conf
-          ldconfig
-          export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
-          export CMAKE_PREFIX_PATH=/opt/rocm:$CMAKE_PREFIX_PATH
-        fi
+    # - name: Set up ROCm paths
+    #   if: ${{ matrix.rocm-version != '0.0' }}
+    #   shell: bash
+    #   run: |
+    #     ROCM_PATH="/opt/rocm-${{ matrix.rocm-version }}.0"
+    #     if [ -d "$ROCM_PATH" ]; then
+    #       echo "$ROCM_PATH/lib" >> /etc/ld.so.conf.d/rocm.conf
+    #       ldconfig
+    #       export LD_LIBRARY_PATH=$ROCM_PATH/lib:$LD_LIBRARY_PATH
+    #       export CMAKE_PREFIX_PATH=$ROCM_PATH:$CMAKE_PREFIX_PATH
+    #     else
+    #       echo "/opt/rocm/lib" >> /etc/ld.so.conf.d/rocm.conf
+    #       ldconfig
+    #       export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
+    #       export CMAKE_PREFIX_PATH=/opt/rocm:$CMAKE_PREFIX_PATH
+    #     fi
     
     # - name: Set up ROCm paths
     #   if: ${{ matrix.rocm-version != '0.0' }}
@@ -134,7 +134,11 @@ jobs:
         git config --global --add safe.directory ${PWD} &&
         cmake --version
         USE_ROCM=OFF
-        if [ ${{ matrix.rocm-version }} != "0.0" ]; then USE_ROCM=ON; fi
+        if [ "${{ matrix.rocm-version }}" != "0.0" ]; then
+          CMAKE_PREFIX_PATH_ARG="-DCMAKE_PREFIX_PATH=/opt/rocm"
+        else
+          CMAKE_PREFIX_PATH_ARG=""
+        fi
         TAG=""
         python3 ./scripts/run-ci.py -B build \
           --name ${{ github.repository_owner }}-${{ github.ref_name }}-ubuntu-noble-${{ matrix.compiler }}${TAG} \
@@ -144,7 +148,6 @@ jobs:
           -DCMAKE_C_COMPILER=$(echo '${{ matrix.compiler }}' | sed 's/+/c/g') \
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-          -DCMAKE_FIND_DEBUG_MODE=ON \
           -DCMAKE_INSTALL_PREFIX=/opt/rocprofiler-systems-dev \
           -DROCPROFSYS_BUILD_TESTING=ON \
           -DROCPROFSYS_USE_MPI=${{ matrix.mpi }} \
@@ -166,6 +169,7 @@ jobs:
           -DROCPROFSYS_DISABLE_EXAMPLES="transpose;rccl;openmp-target;lulesh" \
           -DROCPROFSYS_BUILD_NUMBER=1 \
           -DUSE_CLANG_OMP=OFF \
+          $CMAKE_PREFIX_PATH_ARG \
           -- \
           -LE "transpose|rccl|videodecode|jpegdecode|network"
 # In above command, for PYTHON_ENVS, put back from 8 to 12
