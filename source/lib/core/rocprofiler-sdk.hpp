@@ -70,9 +70,9 @@ get_operations(rocprofiler_buffer_tracing_kind_t kindv);
 std::vector<std::string>
 get_rocm_events();
 
-#    if(ROCPROFILER_VERSION < 500)
-std::unordered_set<uint32_t>
-#    else
+bool
+get_group_by_queue();
+
 std::unordered_set<int32_t>
 #    endif
 get_backtrace_operations(rocprofiler_callback_tracing_kind_t kindv);
