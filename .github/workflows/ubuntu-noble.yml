@@ -101,12 +101,14 @@ jobs:
         apt-get update
         apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev
 
-    - name: List files in rocprofiler-sdk-roctx package
+    - name: Set up ROCm paths
       if: ${{ matrix.rocm-version != '0.0' }}
       shell: bash
       run: |
-        dpkg -L rocprofiler-sdk-roctx || echo "rocprofiler-sdk-roctx not installed"
-        ls /opt
+        echo "/opt/rocm/lib" >> /etc/ld.so.conf.d/rocm.conf
+        ldconfig
+        export LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIBRARY_PATH
+        export CMAKE_PREFIX_PATH=/opt/rocm:$CMAKE_PREFIX_PATH
     
     # - name: Set up ROCm paths
     #   if: ${{ matrix.rocm-version != '0.0' }}
