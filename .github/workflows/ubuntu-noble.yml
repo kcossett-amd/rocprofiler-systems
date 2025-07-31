@@ -144,6 +144,7 @@ jobs:
           -DCMAKE_C_COMPILER=$(echo '${{ matrix.compiler }}' | sed 's/+/c/g') \
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+          -DCMAKE_FIND_DEBUG_MODE=ON \
           -DCMAKE_INSTALL_PREFIX=/opt/rocprofiler-systems-dev \
           -DROCPROFSYS_BUILD_TESTING=ON \
           -DROCPROFSYS_USE_MPI=${{ matrix.mpi }} \
