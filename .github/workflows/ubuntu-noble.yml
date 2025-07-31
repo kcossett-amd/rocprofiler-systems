@@ -101,17 +101,11 @@ jobs:
         apt-get update
         apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev
 
-    - name: Install Extra ROCm Packages # THIS IS ADDED (TODO CHECK)
+    - name: List files in rocprofiler-sdk-roctx package
       if: ${{ matrix.rocm-version != '0.0' }}
-      timeout-minutes: 25
-      uses: nick-fields/retry@v3
-      with:
-        retry_wait_seconds: 30
-        timeout_minutes: 25
-        max_attempts: 1 # Change back to 5
-        command: |
-          apt-get update
-          apt-get install -y rocprofiler-sdk-roctx rocdecode-dev rocjpeg-dev
+      shell: bash
+      run: |
+        dpkg -L rocprofiler-sdk-roctx || echo "rocprofiler-sdk-roctx not installed"
 
     - name: Configure and Build
       timeout-minutes: 115
