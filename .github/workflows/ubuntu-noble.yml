@@ -59,7 +59,7 @@ jobs:
         mpi-headers: ['ON', 'OFF'] # Default ON and OFF
         build-dyninst: ['ON']
         rocm-version: ['0.0', '6.3', '6.4'] # rocm-version: ['0.0','6.3','6.4']
-
+        # 0.0 is sucessfull
     env:
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
@@ -74,13 +74,14 @@ jobs:
       with:
         retry_wait_seconds: 30
         timeout_minutes: 25
-        max_attempts: 1 # Change back to 5
+        max_attempts: 1 # Change back to 5 (Note, I added the rocprofiler-sdk-roctx package)
         command: |
           apt-get update &&
           apt-get install -y software-properties-common &&
           apt-get upgrade -y &&
           apt-get install -y autoconf bison build-essential clang environment-modules \
             gettext libfabric-dev libiberty-dev libomp-dev libopenmpi-dev libtool m4 \
+            rocprofiler-sdk-roctx rocdecode-dev rocjpeg-dev \ 
             openmpi-bin python3-pip texinfo ${{ matrix.compiler }} &&
           python3 -m pip install --upgrade numpy perfetto dataclasses --break-system-packages &&
           python3 -m pip install 'cmake==3.21' --break-system-packages &&
