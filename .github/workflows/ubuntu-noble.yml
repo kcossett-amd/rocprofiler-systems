@@ -69,7 +69,7 @@ jobs:
         command: |
           apt-get -y update && apt-get upgrade -y &&
           apt-get install -y \
-            libiberty-dev clang libomp-dev libopenmpi-dev libfabric-dev \
+            libiberty-dev clang libomp-dev libopenmpi-dev libfabric-dev pybind11-dev \
             openmpi-bin ${{ matrix.compiler }} &&
           for i in 8 9 10 11 12; do /opt/conda/envs/py3.${i}/bin/python -m pip install numpy perfetto dataclasses; done
 
@@ -86,7 +86,7 @@ jobs:
         wget -q https://repo.radeon.com/amdgpu-install/${{ matrix.rocm-version }}/ubuntu/noble/amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
         apt-get install -y ./amdgpu-install_${ROCM_MAJOR}.${ROCM_MINOR}.${ROCM_VERSN}-1_all.deb
         apt-get update
-        apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev rocprofiler-systems
+        apt-get install -y rocm-dev rocdecode-dev libavformat-dev libavcodec-dev rocprofiler-systems pybind11-dev
 
     - name: Configure
       timeout-minutes: 30
