@@ -116,6 +116,13 @@ else()
     # Store python bin for causal tests
     set(CMAKE_INSTALL_BINDIR "causal" CACHE PATH "Default CTest binaries install path")
 
+    set(ROCPROFSYS_USE_MPI OFF)
+    set(ROCPROFSYS_USE_ROCM ON)
+    set(ROCPROFSYS_USE_PYTHON ON)
+    set(ROCPROFSYS_BUILD_PYTHON OFF)
+    set(ROCPROFSYS_USE_MPI_HEADERS ON)
+
+
     # Find the binaries used for testing
     set(ROCPROFILER_EXECUTABLES
         rocprof-sys-sample

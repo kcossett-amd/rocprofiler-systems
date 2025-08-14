@@ -3,22 +3,12 @@ include_guard(GLOBAL)
 
 # ##########################################################################################
 #
-# Configure and aggregate system options, features, and test infrastructure for ctest build.
+# Configure and aggregate system options and test infrastructure for ctest build.
 #
 # ##########################################################################################
 
 #___________________________________________________________________________________________
 # From CMakeLists.txt
-rocprofiler_systems_add_option(ROCPROFSYS_USE_MPI "Enable MPI support" OFF)
-rocprofiler_systems_add_option(ROCPROFSYS_USE_ROCM "Enable ROCm support" ON)
-rocprofiler_systems_add_option(ROCPROFSYS_USE_PYTHON "Enable Python support" ON)
-rocprofiler_systems_add_option(ROCPROFSYS_BUILD_PYTHON
-                                   "Build python bindings with internal pybind11" OFF
-)
-rocprofiler_systems_add_option(
-    ROCPROFSYS_USE_MPI_HEADERS
-    "Enable wrapping MPI functions w/o enabling MPI dependency" ON
-)
 
 set(ROCPROFSYS_ABORT_FAIL_REGEX
     "### ERROR ###|unknown-hash=|address of faulting memory reference|exiting with non-zero exit code|terminate called after throwing an instance|calling abort.. in |Exit code: [1-9]"
@@ -75,6 +65,7 @@ else()
 endif()
 #___________________________________________________________________________________________
 # Python configuration from cmake/Packages.cmake
+
 if(ROCPROFSYS_USE_PYTHON)
     find_package(pybind11 REQUIRED)
     include(ConfigPython)
@@ -187,9 +178,9 @@ find_file(
     NO_DEFAULT_PATH
 )
 if(NOT ROCPROFSYS_USER_LIBRARY_PATH)
-    rocprofiler_systems_message(FATAL_ERROR "Could not find librocprof-sys-user.so in /opt/rocm/lib.")
+    rocprofiler_systems_message(FATAL_ERROR "Could not find librocprof-sys-user.so in ${ROCM_PATH}/lib.")
 else()
-    rocprofiler_systems_message(STATUS "Found pre-installed user library: ${ROCPROFSYS_USER_LIBRARY_PATH}")
+    rocprofiler_systems_message(STATUS "Found library: ${ROCPROFSYS_USER_LIBRARY_PATH}")
     add_library(rocprofiler-systems-user-library SHARED IMPORTED)
     set_target_properties(
         rocprofiler-systems-user-library
@@ -202,7 +193,6 @@ else()
         )
     endif()
 
-    # A CTest requires specific library name
     set(EXPECTED_LIBRARY_NAME "librocprofiler-systems-user-library.so")
     set(SYMLINK_DIR "${PROJECT_BINARY_DIR}/lib")
     set(SYMLINK_PATH "${SYMLINK_DIR}/${EXPECTED_LIBRARY_NAME}")
