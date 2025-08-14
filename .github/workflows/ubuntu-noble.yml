@@ -3,7 +3,6 @@ run-name: ubuntu-noble
 
 on:
   push:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -18,7 +17,6 @@ on:
       - .wordlist.txt
       - CMakePresets.json
   pull_request:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -98,23 +96,10 @@ jobs:
         cmake --version
         USE_ROCM=OFF
         if [ ${{ matrix.rocm-version }} != "0.0" ]; then USE_ROCM=ON; fi
-        cmake -B build \
+        cmake -B build -S tests \
           -DCMAKE_C_COMPILER=$(echo '${{ matrix.compiler }}' | sed 's/+/c/g') \
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
-          -DCMAKE_INSTALL_PREFIX=/opt/rocprofiler-systems \
-          -DROCPROFSYS_BUILD_TESTING=ON \
-          -DROCPROFSYS_DISABLE_EXAMPLES="transpose;rccl;openmp-target" \
-          -DROCPROFSYS_USE_ROCM=${USE_ROCM} \
-          -DRCOPROFSYS_USE_PYTHON=ON \
-          -DROCPROFSYS_BUILD_DYNINST=ON \
-          -DROCPROFSYS_BUILD_BOOST=ON \
-          -DROCPROFSYS_BUILD_TBB=ON \
-          -DROCPROFSYS_BUILD_ELFUTILS=ON \
-          -DROCPROFSYS_BUILD_LIBIBERTY=ON \
-          -DROCPROFSYS_STRIP_LIBRARIES=${{ matrix.strip }} \
-          -DROCPROFSYS_PYTHON_PREFIX=/opt/conda/envs \
-          -DROCPROFSYS_PYTHON_ENVS="py3.8;py3.9;py3.10;py3.11;py3.12"
 
     - name: Build
       timeout-minutes: 115

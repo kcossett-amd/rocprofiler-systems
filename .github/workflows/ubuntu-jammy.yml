@@ -3,7 +3,6 @@ run-name: ubuntu-jammy
 
 on:
   push:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -18,7 +17,6 @@ on:
       - .wordlist.txt
       - CMakePresets.json
   pull_request:
-    branches: [ amd-mainline, amd-staging, release/** ]
     paths-ignore:
       - '*.md'
       - 'docs/**'
@@ -118,7 +116,7 @@ jobs:
         append-tagname ${{ matrix.build-dyninst }} internal-dyninst &&
         append-tagname ${{ matrix.strip }} strip &&
         append-tagname ${{ matrix.hidden }} hidden-viz &&
-        python3 ./scripts/run-ci.py -B build
+        python3 ./scripts/run-ci.py -B build -S tests
           --name ${{ github.repository_owner }}-${{ github.ref_name }}-ubuntu-jammy-${{ matrix.compiler }}${TAG}
           --build-jobs 2
           --site GitHub
@@ -127,26 +125,8 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           -DCMAKE_INSTALL_PREFIX=/opt/rocprofiler-systems-dev
-          -DROCPROFSYS_BUILD_TESTING=ON
-          -DROCPROFSYS_USE_MPI=${{ matrix.mpi }}
-          -DROCPROFSYS_USE_ROCM=${{ matrix.rocm }}
-          -DROCPROFSYS_USE_OMPT=${{ matrix.ompt }}
-          -DROCPROFSYS_USE_PAPI=${{ matrix.papi }}
-          -DROCPROFSYS_USE_PYTHON=${{ matrix.python }}
-          -DROCPROFSYS_USE_MPI_HEADERS=${{ matrix.mpi-headers }}
-          -DROCPROFSYS_BUILD_DYNINST=${{ matrix.build-dyninst }}
-          -DROCPROFSYS_BUILD_BOOST=${{ matrix.build-dyninst }}
-          -DROCPROFSYS_BUILD_TBB=${{ matrix.build-dyninst }}
-          -DROCPROFSYS_BUILD_ELFUTILS=${{ matrix.build-dyninst }}
-          -DROCPROFSYS_BUILD_LIBIBERTY=${{ matrix.build-dyninst }}
-          -DROCPROFSYS_BUILD_HIDDEN_VISIBILITY=${{ matrix.hidden }}
-          -DROCPROFSYS_PYTHON_PREFIX=/opt/conda/envs
-          -DROCPROFSYS_PYTHON_ENVS="py3.7;py3.8;py3.9;py3.10;py3.11"
-          -DROCPROFSYS_STRIP_LIBRARIES=${{ matrix.strip }}
           -DROCPROFSYS_MAX_THREADS=64
           -DROCPROFSYS_DISABLE_EXAMPLES="transpose;rccl;openmp-target"
-          -DROCPROFSYS_BUILD_NUMBER=${{ github.run_attempt }}
-          -DUSE_CLANG_OMP=OFF
           --
           -LE "transpose|rccl|videodecode|jpegdecode|network"
 
