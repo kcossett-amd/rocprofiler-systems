@@ -118,6 +118,7 @@ endif()
 
 #___________________________________________________________________________________________
 # Set ${ROCPROFSYS_MAX_THREADS}
+
 include(ProcessorCount)
 ProcessorCount(ROCPROFSYS_PROCESSOR_COUNT)
 
@@ -158,6 +159,7 @@ elseif(NOT ROCPROFSYS_MAX_THREADS EQUAL _MAX_THREADS)
 endif()
 #___________________________________________________________________________________________
 # Installs Python scripts from /cmake/ConfigInstall.cmake
+
 configure_file(
     ${CTEST_CONFIG_D}/validate-causal-json.py
     ${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/rocprof-sys-causal-print
@@ -171,6 +173,7 @@ install(
 #___________________________________________________________________________________________
 # Set $<TARGET_FILE:rocprofiler-systems-user-library>
 #       (For ctest "rocprofiler-systems-instrument-simulate-lib-basename")
+
 find_file(
     ROCPROFSYS_USER_LIBRARY_PATH
     NAMES librocprof-sys-user.so.${PACKAGE_VERSION}

@@ -115,9 +115,10 @@ else()
 
     # Store python bin for causal tests
     set(CMAKE_INSTALL_BINDIR "causal" CACHE PATH "Default CTest binaries install path")
+    set(ROCPROFSYS_USE_ROCM ON CACHE BOOL "Enable ROCm support")
 
+    # If the user wants to disable a test, they should use ROCPROFSYS_DISABLE_EXAMPLES
     set(ROCPROFSYS_USE_MPI OFF)
-    set(ROCPROFSYS_USE_ROCM ON)
     set(ROCPROFSYS_USE_PYTHON ON)
     set(ROCPROFSYS_BUILD_PYTHON OFF)
     set(ROCPROFSYS_USE_MPI_HEADERS ON)
