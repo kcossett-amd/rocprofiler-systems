@@ -104,3 +104,7 @@ jobs:
     - name: Build
       timeout-minutes: 115
       run: cmake --build build --parallel 2
+
+    - name: Test
+      timeout-minutes: 115
+      run: ctest --test-dir build -V -R
