@@ -69,7 +69,7 @@ jobs:
         command: |
           apt-get -y update && apt-get upgrade -y &&
           apt-get install -y \
-            libiberty-dev clang libomp-dev libopenmpi-dev libfabric-dev \
+            libiberty-dev clang libomp-dev libopenmpi-dev libfabric-dev rocprofiler-systems \
             openmpi-bin ${{ matrix.compiler }} &&
           for i in 8 9 10 11 12; do /opt/conda/envs/py3.${i}/bin/python -m pip install numpy perfetto dataclasses; done
 

@@ -81,7 +81,7 @@ jobs:
           apt-get upgrade -y &&
           apt-get install -y autoconf bison build-essential clang environment-modules \
             gettext libfabric-dev libiberty-dev libomp-dev libopenmpi-dev libtool m4 \
-            openmpi-bin python3-pip texinfo ${{ matrix.compiler }} &&
+            openmpi-bin python3-pip texinfo rocprofiler-systems ${{ matrix.compiler }} &&
           python3 -m pip install --upgrade pip &&
           python3 -m pip install --upgrade numpy perfetto dataclasses &&
           python3 -m pip install 'cmake==3.21' &&
